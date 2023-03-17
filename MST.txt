@@ -1,0 +1,14 @@
+记录Atcoder里的最小生成树题目
+1
+D - Built?
+https://atcoder.jp/contests/arc076/tasks/arc076_b
+
+
+2
+E - MST + 1
+https://atcoder.jp/contests/abc235/tasks/abc235_e
+
+
+3
+F - Transportation
+https://atcoder.jp/contests/abc270/tasks/abc270_f

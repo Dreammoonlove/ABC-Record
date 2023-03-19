@@ -12,3 +12,140 @@ https://atcoder.jp/contests/abc235/tasks/abc235_e
 3
 F - Transportation
 https://atcoder.jp/contests/abc270/tasks/abc270_f
+
+Solution :
+    (最小生成树) O ( n + m )
+1. 首先分析，需要图中所有点两两可达，那么就是最小生成树问题
+2. 如何处理点权？
+在这里可以设置两个虚拟源点
+一个是 n + 1与其余 n个点连接一条边，边权为 Xi
+ 
+一个是 n + 2与其余 n个点连接一条边，边权为 Yi
+ 
+那么接下来我们就有四种情况
+(1). 没有机场也没有海湾，那么最小生成树点的总数 N = n
+(2). 只有机场，没有海湾，那么最小生成树点的总数 N = n + 1 并且需要加入边 Xi
+ 
+(3). 只有海湾，没有机场，那么最小生成树点的总数 N = n + 1 并且需要加入边 Yi
+ 
+(4). 既有机场，也有海湾，那么最小生成树点的总数 N = n + 2 并且需要加入边 Xi, Yi
+ 
+在这里需要注意的是每次加入边了之后记得 init()
+最后还需要特判无解的情况，在这里我用的就是并查集维护size去判断是否无解
+
+```
+#include <bits/stdc++.h>
+
+using namespace std;
+using i64 = long long;
+#define IO ios::sync_with_stdio(false);cin.tie(0),cout.tie(0)
+
+struct DSU {
+    vector<int> par, cou;
+    DSU(int N) : par(N + 10), cou(N + 10, 1) {
+        iota(par.begin(), par.end(), 0);
+    }
+    int find(int x) {
+        if(x == par[x]) return x;
+        else return (par[x] = find(par[x]));
+    }
+    bool merge(int x, int y) {
+        x = find(x);y = find(y);
+        if(x == y) return false;
+        if(cou[x] < cou[y]) swap(x, y);
+        par[y] = x;
+        cou[x] += cou[y];
+        return true;
+    }
+    int count(int x) { return cou[find(x)];}
+};
+
+const int N = 1e6 + 10;
+struct node {
+    int u, v;
+    i64 w;
+    bool operator < (const node &t) const {
+        return w < t.w;
+    };
+}e[N], t[N];
+
+int n, m;
+i64 ans;
+int X[N], Y[N];
+
+void init() {
+    for(int i = 0; i < m;++i) {
+        e[i] = t[i];
+    }
+}
+
+i64 kruskal(int n, int m, int f) {
+    init();
+    if(f == 1) {
+        for(int i = 0; i < n;++i) {
+            e[m++] = {i, n + 1, X[i]};
+        }
+        n++;
+    } 
+    else if(f == 2) {
+        for(int i = 0; i < n;++i) {
+            e[m++] = {i, n + 2, Y[i]};
+        }
+        n++;
+    } 
+    else if(f == 3) {
+        for(int i = 0; i < n;++i) {
+            e[m++] = {n, i, X[i]};
+        }
+        for(int i = 0; i < n;++i) {
+            e[m++] = {n + 1, i, Y[i]};
+        }
+        n += 2;
+    }
+
+    DSU dsu(n + 10);
+    sort(e, e + m);
+    i64 res = 0;
+    for(int i = 0; i < m;++i) {
+        int u = e[i].u, v = e[i].v;
+        i64 w = e[i].w;
+        if(dsu.merge(u, v)) {
+            res += w;
+        }
+    }
+    if(dsu.count(0) != n) return 9e18;
+    else return res; 
+}
+
+
+int main()
+{
+    IO;
+    cin >> n >> m;
+    for(int i = 0; i < n;++i) cin >> X[i];
+    for(int i = 0; i < n;++i) cin >> Y[i];
+
+    for(int i = 0; i < m;++i) {
+        int a, b; i64 c;
+        cin >> a >> b >> c;
+        e[i] = {a - 1, b - 1, c};
+        t[i] = {a - 1, b - 1, c};
+    } 
+
+    i64 res = 9e18, ans = 9e18;
+    res = min(res, kruskal(n, m, 0));
+    ans = min(ans, res);
+
+    res = min(res, kruskal(n, m, 1));
+    ans = min(ans, res);
+
+    res = min(res, kruskal(n, m, 2));
+    ans = min(ans, res);
+
+    res = min(res, kruskal(n, m, 3));
+    ans = min(ans, res);
+
+    cout << ans << '\n';
+    return 0;
+}
+```
